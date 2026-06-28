@@ -1,0 +1,3 @@
+av_data/
+*.csv
+__pycache__/
