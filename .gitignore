@@ -1,3 +1,4 @@
 av_data/
 *.csv
 __pycache__/
+.claude

@@ -1,5 +1,5 @@
 """
-US Air Travel 2019-2023 — what the recovery really looked like.
+US Air Travel 2019-2023 - what the recovery really looked like.
 Real BTS data (3M flight sample). DuckDB SQL + matplotlib.
 Findings: (1) business demand never recovered, leisure overshot;
 (2) the Dec-2022 Southwest meltdown in raw data; (3) delays cascade through the day.
@@ -40,12 +40,12 @@ ax.fill_between(mo["m"], mo["flights"], color=ACC, alpha=0.08)
 trough = mo.loc[mo["flights"].idxmin()]
 ax.scatter([trough["m"]],[trough["flights"]], color=WARN, zorder=5)
 ax.annotate(f"Apr-May 2020:\n~70% of flights gone",
-            xy=(trough["m"],trough["flights"]), xytext=(trough["m"]+pd.Timedelta(days=120),trough["flights"]+12000),
+            xy=(trough["m"],trough["flights"]), xytext=(trough["m"]+pd.Timedelta(days=70),6500),
             fontsize=9,color=WARN,arrowprops=dict(arrowstyle="->",color=WARN))
 ax.set_title("US air travel demand, 2019-2023 (monthly flights, BTS sample)")
 ax.set_ylabel("Flights / month"); ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=[1,7])); ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
 ax.margins(x=0.01); fig.tight_layout()
-fig.savefig("aviation-2019-2023/charts/01_covid_demand_curve.png",bbox_inches="tight"); plt.close(fig)
+fig.savefig("charts/01_covid_demand_curve.png",bbox_inches="tight"); plt.close(fig)
 
 # ------------------------------------------------- 2) business vs leisure recovery
 leisure = ('MCO','MIA','FLL','PBI','RSW','TPA','LAS','SJU','HNL','OGG','PHX')
@@ -78,7 +78,7 @@ ax.annotate("Leisure 2023: 107",xy=(piv3.index[-2],piv3["leisure_idx"].iloc[-2])
 ax.annotate("Business stuck at 87",xy=(piv3.index[-2],piv3["business_idx"].iloc[-2]),
             fontsize=9,color=ACC,xytext=(6,-14),textcoords="offset points")
 ax.margins(x=0.01); fig.tight_layout()
-fig.savefig("aviation-2019-2023/charts/02_business_vs_leisure_recovery.png",bbox_inches="tight"); plt.close(fig)
+fig.savefig("charts/02_business_vs_leisure_recovery.png",bbox_inches="tight"); plt.close(fig)
 
 # ------------------------------------------------------ 3) Southwest Dec-2022
 sw = con.execute("""
@@ -100,11 +100,11 @@ peak = sw.loc[sw["pct"].idxmax()]
 ax.annotate(f"Dec 26: {peak['pct']:.0f}% of Southwest\nflights cancelled",
             xy=(peak["d"],peak["pct"]),xytext=(peak["d"]-pd.Timedelta(days=7),peak["pct"]-4),
             fontsize=9,color=WARN,arrowprops=dict(arrowstyle="->",color=WARN))
-ax.set_title("The Southwest meltdown, Dec 2022 — one airline, in the raw data")
+ax.set_title("The Southwest meltdown, Dec 2022 - one airline, in the raw data")
 ax.set_ylabel("% of flights cancelled")
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
 ax.legend(frameon=False,fontsize=9); ax.margins(x=0.02); fig.tight_layout()
-fig.savefig("aviation-2019-2023/charts/03_southwest_meltdown.png",bbox_inches="tight"); plt.close(fig)
+fig.savefig("charts/03_southwest_meltdown.png",bbox_inches="tight"); plt.close(fig)
 
 # ------------------------------------------------------ 4) delay cascade by hour
 hr = con.execute("""
@@ -119,9 +119,9 @@ ax.fill_between(hr["h"],hr["avg_delay"],color=ACC,alpha=0.08)
 ax.set_title("Why your evening flight is cursed: delays cascade through the day")
 ax.set_xlabel("Scheduled departure hour"); ax.set_ylabel("Avg departure delay (min)")
 ax.set_xticks(range(5,24,2))
-ax.annotate("6am: ~0 min",xy=(6,hr.loc[hr.h==6,"avg_delay"].values[0]),fontsize=9,color=INK,xytext=(6,8),textcoords="offset points")
+ax.annotate(f"6am: ~{hr.loc[hr.h==6,'avg_delay'].values[0]:.1f} min",xy=(6,hr.loc[hr.h==6,"avg_delay"].values[0]),fontsize=9,color=INK,xytext=(6,8),textcoords="offset points")
 ax.annotate("late evening: 3-4x worse",xy=(20,hr.loc[hr.h==20,"avg_delay"].values[0]),fontsize=9,color=WARN,xytext=(-40,6),textcoords="offset points")
-fig.tight_layout(); fig.savefig("aviation-2019-2023/charts/04_delay_cascade.png",bbox_inches="tight"); plt.close(fig)
+fig.tight_layout(); fig.savefig("charts/04_delay_cascade.png",bbox_inches="tight"); plt.close(fig)
 
 # share of delay minutes from "late aircraft" early vs late
 share = con.execute("""
@@ -133,7 +133,7 @@ GROUP BY 1""").df()
 print("\n=== KEY NUMBERS ===")
 print("Recovery (vs 2019=100):  business 2023 ~87  |  leisure 2023 ~107")
 print(f"Southwest Dec-26-2022 cancellations: {peak['pct']:.0f}%")
-print(f"Delay: 6am {hr.loc[hr.h==6,'avg_delay'].values[0]:.1f}m -> 8pm {hr.loc[hr.h==20,'avg_delay'].values[0]:.1f}m")
+print(f"Delay: 6am {hr.loc[hr.h==6,'avg_delay'].values[0]:.1f}m to 8pm {hr.loc[hr.h==20,'avg_delay'].values[0]:.1f}m")
 print("Late-aircraft share of delay minutes:")
 for _,r in share.iterrows(): print(f"   {r['part']}: {r['late_aircraft_share']}%")
 print("charts written.")
